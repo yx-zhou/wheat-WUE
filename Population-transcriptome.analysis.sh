@@ -28,28 +28,3 @@ write.table(et$table,file = "edgeR.res.txt",sep = "\t",quote = F,row.names = T)
 
 # Method2. GFOLD
 gfold diff -s1 Control.txt -s2  Treat.txt -o ControlVSTreat
-
-## Part3. Traits bias
-# Category defining
-library(rdist)
-data=read_tsv("Traids.txt")
-data$Balanced=cdist(data[5:7],t(c(1/3,1/3,1/3)),metric="euclidean",p=2)
-data$Asupressed=cdist(data[5:7],t(c(0,0.5,0.5)),metric="euclidean",p=2)
-data$Bsupressed=cdist(data[5:7],t(c(0.5,0,0.5)),metric="euclidean",p=2)
-data$Dsupressed=cdist(data[5:7],t(c(0.5,0.5,0)),metric="euclidean",p=2)
-data$Adominant=cdist(data[5:7],t(c(1,0,0)),metric="euclidean",p=2)
-data$Bdominant=cdist(data[5:7],t(c(0,1,0)),metric="euclidean",p=2)
-data$Ddominant=cdist(data[5:7],t(c(0,0,1)),metric="euclidean",p=2)
-minname.fun=function(data){a=which.min(data);return(a)} 
-data$class=apply(data[,8:14],1,minname.fun) 
-data=data %>% mutate(group=case_when(class == 1 ~ "Balanced", class == 2 ~ "Asuppressed",class == 3 ~ "Bsuppressed", class == 4 ~ "Dsuppressed",class == 5 ~ "Adominant", class == 6 ~ "Bdominant", class == 7 ~ "Ddominant"))
-write_tsv(data,"Traids.category.txt")
-
-# Visualization by ternary
-library(ggtern)
-p=ggtern(data,aes(Aperave,Bperave,Dperave,color=group)) +
-  geom_point(aes(alpha=0.8)) +
-  theme_showarrows() +
-  scale_color_manual(values=mycol)+
-  xlab("A") + ylab("B") + zlab("D")
-ggsave("Traids.pdf",p,width =8, height =8)
